@@ -1,5 +1,6 @@
 node_modules/
 out/
 dist/
+.tools/
 *.log
 src/renderer/public/vendor/live2dcubismcore.min.js
