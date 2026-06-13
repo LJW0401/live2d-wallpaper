@@ -1,6 +1,10 @@
+import { ShaderSystem } from '@pixi/core'
+import { install } from '@pixi/unsafe-eval'
 import { Application } from 'pixi.js'
 import type { Live2DModel } from 'pixi-live2d-display/cubism4'
 import type { TrackingFrame } from './tracker'
+
+install({ ShaderSystem })
 
 interface CubismCoreModel {
   setParameterValueById(id: string, value: number): void

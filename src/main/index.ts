@@ -65,7 +65,7 @@ function createWindow(): void {
     resizable: true,
     show: false,
     webPreferences: {
-      preload: resolve(import.meta.dirname, '../preload/index.mjs'),
+      preload: resolve(import.meta.dirname, '../preload/index.js'),
       contextIsolation: true,
       sandbox: true
     }
@@ -110,10 +110,12 @@ app.whenReady().then(() => {
     return store.store
   })
   ipcMain.handle('model:choose', async () => {
-    const result = await dialog.showOpenDialog({
+    if (!mainWindow) return null
+
+    const result = await dialog.showOpenDialog(mainWindow, {
       title: '选择 Live2D 模型',
       properties: ['openFile'],
-      filters: [{ name: 'Live2D model', extensions: ['json'] }]
+      filters: [{ name: 'Live2D 模型文件 (*.model3.json)', extensions: ['json'] }]
     })
     if (result.canceled || !result.filePaths[0]) return null
 

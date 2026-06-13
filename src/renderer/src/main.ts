@@ -145,11 +145,26 @@ async function init(): Promise<void> {
 }
 
 $('#choose-model').addEventListener('click', async () => {
-  const model = await window.desktop.chooseModel()
-  if (!model) return
-  $('#model-name').textContent = model.name
-  await save({ modelUrl: model.url, modelName: model.name })
-  await loadModel(model.url)
+  const button = $('#choose-model') as HTMLButtonElement
+  button.disabled = true
+  button.textContent = '正在打开文件选择器...'
+  setStatus('请选择 .model3.json 模型文件')
+
+  try {
+    const model = await window.desktop.chooseModel()
+    if (!model) {
+      setStatus('已取消选择')
+      return
+    }
+    $('#model-name').textContent = model.name
+    await save({ modelUrl: model.url, modelName: model.name })
+    await loadModel(model.url)
+  } catch (error) {
+    setStatus(`无法选择模型：${error instanceof Error ? error.message : String(error)}`, true)
+  } finally {
+    button.disabled = false
+    button.textContent = '选择 Live2D 模型'
+  }
 })
 $('#settings-toggle').addEventListener('click', () => panel.classList.add('visible'))
 $('#close-panel').addEventListener('click', () => panel.classList.remove('visible'))
