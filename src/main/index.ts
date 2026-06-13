@@ -4,9 +4,12 @@ import {
   dialog,
   globalShortcut,
   ipcMain,
+  Menu,
+  nativeImage,
   net,
   protocol,
-  screen
+  screen,
+  Tray
 } from 'electron'
 import Store from 'electron-store'
 import { randomUUID } from 'node:crypto'
@@ -61,6 +64,9 @@ repairSettingsFile()
 const store = new Store<AppSettings>({ defaults })
 const modelRoots = new Map<string, string>()
 let mainWindow: BrowserWindow | null = null
+let tray: Tray | null = null
+const TRAY_ICON =
+  'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAA9SURBVDhPY/B3e/qfEsyALkAqHsQGYAPoanAagA+gqx2EBhAC6OoxDCBkCLraQWoALkPQ1eA1gFg88AYAADb/09Mbt+sbAAAAAElFTkSuQmCC'
 
 function registerModelPath(modelFile: string): string {
   const token = randomUUID()
@@ -108,6 +114,32 @@ function createWindow(): void {
   }
 }
 
+function restoreSettingsWindow(): void {
+  if (!mainWindow) return
+  detachFromDesktop(mainWindow)
+  store.set('wallpaperMode', false)
+  mainWindow.webContents.send('wallpaper:changed', false)
+}
+
+function createTray(): void {
+  const icon = nativeImage.createFromBuffer(Buffer.from(TRAY_ICON, 'base64'))
+  tray = new Tray(icon)
+  tray.setToolTip('Live2D Wallpaper')
+  tray.setContextMenu(
+    Menu.buildFromTemplate([
+      {
+        label: '恢复设置窗口',
+        click: restoreSettingsWindow
+      },
+      {
+        label: '退出',
+        click: () => app.quit()
+      }
+    ])
+  )
+  tray.on('double-click', restoreSettingsWindow)
+}
+
 app.whenReady().then(() => {
   protocol.handle('live2d', (request) => {
     const url = new URL(request.url)
@@ -153,7 +185,16 @@ app.whenReady().then(() => {
   })
   ipcMain.handle('wallpaper:set', (_event, enabled: boolean) => {
     if (!mainWindow) return false
-    const active = enabled ? attachToDesktop(mainWindow) : (detachFromDesktop(mainWindow), false)
+    let active = false
+    try {
+      const display = screen.getDisplayMatching(mainWindow.getBounds())
+      active = enabled
+        ? attachToDesktop(mainWindow, display.bounds)
+        : (detachFromDesktop(mainWindow), false)
+    } catch (error) {
+      console.error('Failed to change wallpaper mode:', error)
+      detachFromDesktop(mainWindow)
+    }
     store.set('wallpaperMode', active)
     return active
   })
@@ -163,14 +204,13 @@ app.whenReady().then(() => {
   ipcMain.handle('app:quit', () => app.quit())
 
   createWindow()
+  createTray()
 
-  globalShortcut.register('CommandOrControl+Shift+L', () => {
-    if (!mainWindow) return
-    detachFromDesktop(mainWindow)
-    store.set('wallpaperMode', false)
-    mainWindow.webContents.send('wallpaper:changed', false)
-  })
+  globalShortcut.register('CommandOrControl+Shift+L', restoreSettingsWindow)
 })
 
 app.on('window-all-closed', () => app.quit())
-app.on('will-quit', () => globalShortcut.unregisterAll())
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll()
+  tray?.destroy()
+})

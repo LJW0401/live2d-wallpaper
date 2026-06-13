@@ -38,7 +38,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       <button id="wallpaper" class="primary">设为桌面壁纸</button>
       <button id="quit">退出</button>
     </div>
-    <p class="hint">壁纸模式下窗口会鼠标穿透。按 Alt+Tab 返回设置窗口。</p>
+    <p class="hint">壁纸模式下窗口会鼠标穿透。按 Ctrl+Shift+L 或双击系统托盘图标可恢复设置窗口。</p>
   </aside>
 `
 
