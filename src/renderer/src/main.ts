@@ -7,7 +7,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <main id="stage"></main>
   <video id="camera" muted playsinline></video>
   <button id="settings-toggle" title="打开设置">设置</button>
-  <aside id="panel">
+  <aside id="panel" class="visible">
     <header>
       <div>
         <h1>Live2D Wallpaper</h1>
@@ -115,7 +115,11 @@ async function init(): Promise<void> {
   stage.setLayout(settings.x, settings.y, settings.scale)
   video.classList.toggle('mirrored', settings.mirrorCamera)
 
-  if (settings.modelUrl) await loadModel(settings.modelUrl)
+  if (!window.Live2DCubismCore) {
+    setStatus('缺少 Cubism Core，请先按 README 放置 live2dcubismcore.min.js', true)
+  } else if (settings.modelUrl) {
+    await loadModel(settings.modelUrl)
+  }
   if (settings.trackingEnabled) await setTracking(true)
 
   const updateLayout = async () => {

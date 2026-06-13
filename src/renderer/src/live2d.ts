@@ -1,5 +1,5 @@
 import { Application } from 'pixi.js'
-import { Live2DModel } from 'pixi-live2d-display/cubism4'
+import type { Live2DModel } from 'pixi-live2d-display/cubism4'
 import type { TrackingFrame } from './tracker'
 
 interface CubismCoreModel {
@@ -35,6 +35,8 @@ export class Live2DStage {
     if (!window.Live2DCubismCore) {
       throw new Error('缺少 Cubism 4 Core，请按 README 放置运行库文件。')
     }
+
+    const { Live2DModel } = await import('pixi-live2d-display/cubism4')
     if (this.model) {
       this.app.stage.removeChild(this.model)
       this.model.destroy({ children: true })
