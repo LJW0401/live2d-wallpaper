@@ -88,6 +88,7 @@ async function loadModel(url: string): Promise<void> {
 
 async function setTracking(enabled: boolean): Promise<void> {
   await save({ trackingEnabled: enabled })
+  stage.setTrackingActive(enabled)
   if (!enabled) {
     tracker.stop()
     video.classList.remove('visible')
@@ -103,7 +104,9 @@ async function setTracking(enabled: boolean): Promise<void> {
     video.classList.add('visible')
     setStatus('头部跟踪中')
   } catch (error) {
-    ($('#tracking') as HTMLInputElement).checked = false
+    stage.setTrackingActive(false)
+    const trackingCheckbox = $('#tracking') as HTMLInputElement
+    trackingCheckbox.checked = false
     await save({ trackingEnabled: false })
     setStatus(`摄像头启动失败：${describeError(error)}`, true)
   }

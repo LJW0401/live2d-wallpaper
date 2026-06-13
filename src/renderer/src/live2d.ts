@@ -1,6 +1,6 @@
 import { ShaderSystem } from '@pixi/core'
 import { install } from '@pixi/unsafe-eval'
-import { Application } from 'pixi.js'
+import { Application, Ticker } from 'pixi.js'
 import type { Live2DModel } from 'pixi-live2d-display/cubism4'
 import type { TrackingFrame } from './tracker'
 
@@ -13,6 +13,8 @@ interface CubismCoreModel {
 export class Live2DStage {
   private app: Application
   private model: Live2DModel | null = null
+  private trackingActive = false
+  private trackingStrength = 1
   private position = { x: 0.5, y: 1, scale: 0.35 }
   private current: TrackingFrame = {
     yaw: 0,
@@ -41,12 +43,14 @@ export class Live2DStage {
     }
 
     const { Live2DModel } = await import('pixi-live2d-display/cubism4')
+    Live2DModel.registerTicker(Ticker)
     if (this.model) {
       this.app.stage.removeChild(this.model)
       this.model.destroy({ children: true })
     }
     this.model = await Live2DModel.from(url, { autoInteract: false })
     this.model.anchor.set(0.5, 1)
+    this.model.internalModel.on('beforeModelUpdate', () => this.writeTrackingParameters())
     this.app.stage.addChild(this.model)
     this.layout()
   }
@@ -62,15 +66,23 @@ export class Live2DStage {
     for (const key of Object.keys(frame) as Array<keyof TrackingFrame>) {
       this.current[key] += (frame[key] - this.current[key]) * alpha
     }
+    this.trackingStrength = strength
+  }
 
+  setTrackingActive(active: boolean): void {
+    this.trackingActive = active
+  }
+
+  private writeTrackingParameters(): void {
+    if (!this.model || !this.trackingActive) return
     const core = this.model.internalModel.coreModel as CubismCoreModel
     const set = (id: string, value: number) => core.setParameterValueById(id, value)
-    set('ParamAngleX', this.current.yaw * strength)
-    set('ParamAngleY', -this.current.pitch * strength)
-    set('ParamAngleZ', this.current.roll * strength)
-    set('ParamBodyAngleX', this.current.yaw * 0.35 * strength)
-    set('ParamEyeBallX', (this.current.yaw / 30) * strength)
-    set('ParamEyeBallY', (-this.current.pitch / 30) * strength)
+    set('ParamAngleX', this.current.yaw * this.trackingStrength)
+    set('ParamAngleY', -this.current.pitch * this.trackingStrength)
+    set('ParamAngleZ', this.current.roll * this.trackingStrength)
+    set('ParamBodyAngleX', this.current.yaw * 0.35 * this.trackingStrength)
+    set('ParamEyeBallX', (this.current.yaw / 30) * this.trackingStrength)
+    set('ParamEyeBallY', (-this.current.pitch / 30) * this.trackingStrength)
     set('ParamEyeLOpen', this.current.eyeLeft)
     set('ParamEyeROpen', this.current.eyeRight)
     set('ParamMouthOpenY', this.current.mouthOpen)
