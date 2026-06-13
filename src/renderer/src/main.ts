@@ -55,6 +55,23 @@ function setStatus(message: string, error = false): void {
   status.classList.toggle('error', error)
 }
 
+function describeError(error: unknown): string {
+  if (error instanceof DOMException) {
+    const cameraErrors: Record<string, string> = {
+      NotAllowedError: '摄像头权限被拒绝，请在 Windows 隐私设置中允许桌面应用访问摄像头',
+      NotFoundError: '没有检测到可用摄像头',
+      NotReadableError: '摄像头正被其他程序占用，或设备无法读取',
+      OverconstrainedError: '所选摄像头不支持请求的参数'
+    }
+    return cameraErrors[error.name] ?? `${error.name}：${error.message}`
+  }
+  if (error instanceof Error) return error.message
+  if (error instanceof Event) {
+    return `MediaPipe 资源加载失败（${error.type}），请检查本地 WASM 文件和网络连接`
+  }
+  return String(error)
+}
+
 async function save(patch: Partial<AppSettings>): Promise<void> {
   settings = await window.desktop.saveSettings(patch)
 }
@@ -88,7 +105,7 @@ async function setTracking(enabled: boolean): Promise<void> {
   } catch (error) {
     ($('#tracking') as HTMLInputElement).checked = false
     await save({ trackingEnabled: false })
-    setStatus(`摄像头启动失败：${error instanceof Error ? error.message : String(error)}`, true)
+    setStatus(`摄像头启动失败：${describeError(error)}`, true)
   }
 }
 

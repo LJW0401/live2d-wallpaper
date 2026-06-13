@@ -29,16 +29,11 @@ export class HeadTracker {
   ): Promise<void> {
     this.stop()
     const vision = await FilesetResolver.forVisionTasks('/mediapipe/wasm')
-    this.landmarker = await FaceLandmarker.createFromOptions(vision, {
-      baseOptions: {
-        modelAssetPath: MODEL_URL,
-        delegate: 'GPU'
-      },
-      runningMode: 'VIDEO',
-      outputFaceBlendshapes: true,
-      outputFacialTransformationMatrixes: true,
-      numFaces: 1
-    })
+    try {
+      this.landmarker = await this.createLandmarker(vision, 'GPU')
+    } catch {
+      this.landmarker = await this.createLandmarker(vision, 'CPU')
+    }
 
     this.stream = await navigator.mediaDevices.getUserMedia({
       video: {
@@ -63,6 +58,22 @@ export class HeadTracker {
       this.animation = requestAnimationFrame(tick)
     }
     tick()
+  }
+
+  private createLandmarker(
+    vision: Awaited<ReturnType<typeof FilesetResolver.forVisionTasks>>,
+    delegate: 'GPU' | 'CPU'
+  ): Promise<FaceLandmarker> {
+    return FaceLandmarker.createFromOptions(vision, {
+      baseOptions: {
+        modelAssetPath: MODEL_URL,
+        delegate
+      },
+      runningMode: 'VIDEO',
+      outputFaceBlendshapes: true,
+      outputFacialTransformationMatrixes: true,
+      numFaces: 1
+    })
   }
 
   stop(): void {

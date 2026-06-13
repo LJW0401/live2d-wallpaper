@@ -88,6 +88,14 @@ function createWindow(): void {
   })
 
   mainWindow.setMenuBarVisibility(false)
+  const appSession = mainWindow.webContents.session
+  appSession.setPermissionCheckHandler((webContents, permission) => {
+    return webContents === mainWindow?.webContents && permission === 'media'
+  })
+  appSession.setPermissionRequestHandler((webContents, permission, callback) => {
+    callback(webContents === mainWindow?.webContents && permission === 'media')
+  })
+
   mainWindow.once('ready-to-show', () => {
     mainWindow?.show()
     store.set('wallpaperMode', false)
