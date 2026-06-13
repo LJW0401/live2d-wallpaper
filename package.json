@@ -1,0 +1,52 @@
+{
+  "name": "live2d-wallpaper",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Windows Live2D wallpaper with local camera head tracking",
+  "main": "out/main/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "dist": "npm run build && electron-builder --win nsis",
+    "preview": "electron-vite preview",
+    "typecheck": "tsc --noEmit",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "^0.10.22",
+    "electron-store": "^10.0.1",
+    "koffi": "^2.14.1",
+    "pixi-live2d-display": "^0.4.0",
+    "pixi.js": "^6.5.10"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "electron": "^36.5.0",
+    "electron-builder": "^26.0.12",
+    "electron-vite": "^3.1.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  },
+  "overrides": {
+    "gh-pages": "^6.3.0"
+  },
+  "build": {
+    "appId": "dev.live2d.wallpaper",
+    "productName": "Live2D Wallpaper",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "out/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

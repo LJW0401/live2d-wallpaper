@@ -1,0 +1,82 @@
+:root {
+  color: #e5e7eb;
+  font-family: Inter, "Microsoft YaHei", system-ui, sans-serif;
+  background: #111827;
+}
+
+* { box-sizing: border-box; }
+html, body, #app, #stage { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+canvas { display: block; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+
+#stage {
+  background:
+    radial-gradient(circle at 70% 25%, rgba(79, 70, 229, 0.22), transparent 34%),
+    linear-gradient(145deg, #111827, #030712);
+}
+
+#settings-toggle {
+  position: fixed;
+  right: 24px;
+  top: 24px;
+  padding: 10px 16px;
+  color: white;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 12px;
+  background: rgba(17,24,39,.72);
+  backdrop-filter: blur(14px);
+}
+
+#panel {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  width: min(380px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  padding: 22px;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 18px;
+  background: rgba(17,24,39,.92);
+  box-shadow: 0 24px 70px rgba(0,0,0,.45);
+  backdrop-filter: blur(22px);
+  transform: translateX(calc(100% + 32px));
+  transition: transform .22s ease;
+}
+
+#panel.visible { transform: translateX(0); }
+header { display: flex; align-items: start; justify-content: space-between; }
+h1 { margin: 0 0 4px; font-size: 21px; }
+header p { margin: 0 0 18px; font-size: 13px; color: #9ca3af; }
+header button { color: #d1d5db; border: 0; background: transparent; font-size: 26px; }
+label { display: grid; gap: 8px; margin-top: 18px; font-size: 14px; }
+label.row { display: flex; align-items: center; }
+input[type="range"] { width: 100%; accent-color: #818cf8; }
+input[type="checkbox"] { width: 17px; height: 17px; accent-color: #6366f1; }
+.primary, #quit {
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 10px;
+  color: white;
+}
+.primary { background: #4f46e5; }
+#quit { background: #374151; }
+#choose-model { width: 100%; }
+.actions { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-top: 22px; }
+.muted, .hint { color: #9ca3af; font-size: 12px; }
+.hint { line-height: 1.6; }
+.error { color: #fca5a5 !important; }
+
+#camera {
+  display: none;
+  position: fixed;
+  left: 18px;
+  bottom: 18px;
+  width: 180px;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 14px;
+  opacity: .7;
+}
+#camera.visible { display: block; }
+#camera.mirrored { transform: scaleX(-1); }
