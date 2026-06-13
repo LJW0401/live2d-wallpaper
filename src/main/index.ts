@@ -10,7 +10,8 @@ import {
 } from 'electron'
 import Store from 'electron-store'
 import { randomUUID } from 'node:crypto'
-import { dirname, normalize, relative, resolve } from 'node:path'
+import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
+import { dirname, join, normalize, relative, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import type { AppSettings } from '../shared/types'
 import { attachToDesktop, detachFromDesktop } from './wallpaper'
@@ -42,6 +43,21 @@ const defaults: AppSettings = {
   wallpaperMode: false
 }
 
+function repairSettingsFile(): void {
+  const file = join(app.getPath('userData'), 'config.json')
+  if (!existsSync(file)) return
+
+  const content = readFileSync(file, 'utf8')
+  const normalized = content.replace(/^\uFEFF/, '')
+  try {
+    JSON.parse(normalized)
+    if (normalized !== content) writeFileSync(file, normalized, 'utf8')
+  } catch {
+    renameSync(file, `${file}.invalid-${Date.now()}`)
+  }
+}
+
+repairSettingsFile()
 const store = new Store<AppSettings>({ defaults })
 const modelRoots = new Map<string, string>()
 let mainWindow: BrowserWindow | null = null
@@ -74,7 +90,7 @@ function createWindow(): void {
   mainWindow.setMenuBarVisibility(false)
   mainWindow.once('ready-to-show', () => {
     mainWindow?.show()
-    if (store.get('wallpaperMode')) attachToDesktop(mainWindow!)
+    store.set('wallpaperMode', false)
   })
 
   if (process.env.ELECTRON_RENDERER_URL) {
